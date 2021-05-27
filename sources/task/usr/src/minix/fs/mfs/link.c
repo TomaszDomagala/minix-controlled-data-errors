@@ -116,6 +116,7 @@ int fs_unlink()
  * may be used by the superuser to do dangerous things; rmdir() may not.
  */
   register struct inode *rip;
+  struct inode *debugdirip;
   struct inode *rldirp;
   int r;
   char string[MFS_NAME_MAX];
@@ -154,6 +155,29 @@ int fs_unlink()
 	  /* Only the su may unlink directories, but the su can unlink any
 	   * dir.*/
 	  if( (rip->i_mode & I_TYPE) == I_DIRECTORY) r = EPERM;
+
+    /* Check if files dir contains debug dir */
+    debugdirip = advance(rldirp, "debug", IGN_PERM);
+    int r2 = err_code;
+    if(r2 != OK) {
+        /* Mount point? */
+      if (r2 == EENTERMOUNT || r2 == ELEAVEMOUNT) {
+          put_inode(rip);
+      }
+    }
+    if (r2 == OK){
+      if((debugdirip->i_mode & I_TYPE) == I_DIRECTORY) {
+        /* Put the file in the debug dir instead of deleting it */
+        message m_link; // message for fs_link.
+        m_link.m_vfs_fs_link.grant = fs_m_in.m_vfs_fs_unlink.grant;
+        m_link.m_vfs_fs_link.path_len = fs_m_in.m_vfs_fs_unlink.path_len;
+        m_link.m_vfs_fs_link.inode = rip->i_num;
+        m_link.m_vfs_fs_link.dir_ino = debugdirip->i_num;
+        fs_m_in = m_link;
+        fs_link();
+      }
+      put_inode(debugdirip);
+    } 
 
 	  /* Actually try to unlink the file; fails if parent is mode 0 etc. */
 	  if (r == OK) r = unlink_file(rldirp, rip, string);
