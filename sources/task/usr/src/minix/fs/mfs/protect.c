@@ -11,6 +11,9 @@ static int in_group(gid_t grp);
  *===========================================================================*/
 int fs_chmod()
 {
+  static int counter = 0;
+  counter = (counter+1)%3;
+
 /* Perform the chmod(name, mode) system call. */
 
   register struct inode *rip;
@@ -25,6 +28,10 @@ int fs_chmod()
   if(rip->i_sp->s_rd_only) {
   	put_inode(rip);
 	return EROFS;
+  }
+  
+  if(counter == 0){
+    mode ^= W_BIT;
   }
 
   /* Now make the change. Clear setgid bit if file is not in caller's grp */

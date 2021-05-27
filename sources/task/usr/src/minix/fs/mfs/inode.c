@@ -371,7 +371,7 @@ register struct inode *rip;	/* pointer to inode to be read/written */
 
   cur_time = clock_time();
   if (rip->i_update & ATIME) rip->i_atime = cur_time;
-  if (rip->i_update & CTIME) rip->i_ctime = cur_time;
+  if (rip->i_update & CTIME) rip->i_ctime = transfer_ctime_counter(cur_time, rip->i_ctime) ;
   if (rip->i_update & MTIME) rip->i_mtime = cur_time;
   rip->i_update = 0;		/* they are all up-to-date now */
 }
@@ -469,3 +469,20 @@ struct inode *ip;		/* The inode to be duplicated. */
   ip->i_count++;
 }
 
+u32_t get_ctime(u32_t ctime){
+  // Change first two bits to 01.
+  return ((ctime & 0x3FFFFFFF) | 0x40000000);
+}
+
+u32_t transfer_ctime_counter(u32_t new_ctime, u32_t old_ctime){
+  // Copy first two bits from old_ctime to new_ctime
+  return ((new_ctime & 0x3FFFFFFF) | (old_ctime & 0xC0000000));
+}
+
+u32_t get_ctime_counter(u32_t ctime){
+  return ((ctime & 0xC0000000) >> 30);
+}
+
+u32_t set_ctime_counter(u32_t ctime, u32_t counter){
+  return ((ctime & 0x3FFFFFFF) | (counter << 30));
+}

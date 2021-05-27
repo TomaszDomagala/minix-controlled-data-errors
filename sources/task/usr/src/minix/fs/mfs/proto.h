@@ -28,6 +28,10 @@ struct inode *get_inode(dev_t dev, ino_t numb);
 void put_inode(struct inode *rip);
 void update_times(struct inode *rip);
 void rw_inode(struct inode *rip, int rw_flag);
+u32_t get_ctime(u32_t ctime);
+u32_t transfer_ctime_counter(u32_t new_ctime, u32_t old_ctime);
+u32_t get_ctime_counter(u32_t ctime);
+u32_t set_ctime_counter(u32_t ctime, u32_t counter);
 
 /* link.c */
 int fs_ftrunc(void);

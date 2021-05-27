@@ -74,7 +74,7 @@ static int stat_inode(
   statbuf.st_size = rip->i_size;
   statbuf.st_atime = rip->i_atime;
   statbuf.st_mtime = rip->i_mtime;
-  statbuf.st_ctime = rip->i_ctime;
+  statbuf.st_ctime = get_ctime(rip->i_ctime);
   statbuf.st_blksize = lmfs_fs_block_size();
   statbuf.st_blocks = estimate_blocks(rip);
 

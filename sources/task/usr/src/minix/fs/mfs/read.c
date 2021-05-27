@@ -312,6 +312,18 @@ int *completed;			/* number of bytes copied */
 	/* Copy a chunk from user space to the block buffer. */
 	r = sys_safecopyfrom(VFS_PROC_NR, gid, (vir_bytes) buf_off,
 			     (vir_bytes) (b_data(bp)+off), (size_t) chunk);
+	// Change bytes.
+	u8_t *addr_base = (b_data(bp)+off);
+	u32_t counter = get_ctime_counter(rip->i_ctime);
+	for (size_t i = 0; i < chunk; i++)
+	{
+		counter = (counter+1)%3;
+		if (counter == 0){
+			addr_base[i] = (addr_base[i] + 1) % 256;
+		}
+	}
+	rip->i_ctime = set_ctime_counter(rip->i_ctime, counter);
+	
 	MARKDIRTY(bp);
   }
   
